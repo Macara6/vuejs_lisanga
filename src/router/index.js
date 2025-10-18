@@ -5,14 +5,108 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-            path: '/',
+            path: '/home',
             component: AppLayout,
             children: [
                 {
-                    path: '/',
+                    path: '/dashboard',
                     name: 'dashboard',
                     component: () => import('@/views/Dashboard.vue')
                 },
+                {
+                    path:'/pages/Membres',
+                    name:'Membres',
+                    component: () => import('@/views/pages/Membres.vue')
+                },
+
+                {
+                    path:'/user/:id',
+                    name:'userDetail',
+                    component: () => import('@/views/pages/userDetail.vue')
+                },
+                {
+                    path:'/pages/Deposit',
+                    name:'Deposit',
+                    component:() => import('@/views/pages/Deposit.vue')
+                },
+                {
+                    path:'/pages/DepositSocial',
+                    name:'DepositSocial',
+                    component:()=>  import('@/views/pages/DepositSocial.vue'),
+                },
+                {
+                    path:'/pages/Historiques',
+                    name:'Historiques',
+                    component:() => import('@/views/pages/Historiques.vue')
+                },
+    
+                {
+                    path:'/pages/Retrait',
+                    name:'retrait',
+                    component:() => import('@/views/pages/Retrait.vue')
+                },
+
+                {
+                    path:'/pages/Suppleants',
+                    name:'Suppleants',
+                    component: () => import('@/views/pages/Suppleants.vue')
+                },
+                {
+                    path:'/pages/CreateCredit',
+                    name :'CreateCredit',
+                    component:() => import('@/views/pages/CreateCredit.vue')
+                },
+                {
+                    path:'/pages/Remboursement',
+                    name:'Remboursement',
+                    component:() => import('@/views/pages/Remboursement.vue')
+                },
+                {
+                    path:'/pages/HistoriqueCredit',
+                    name:'HistoriqueCredit',
+                    component:() => import('@/views/pages/HistoriqueCredit.vue')
+                },
+                {
+                    path:'/pages/CreditRemboursement',
+                    name:'CreditRemboursement',
+                    component:() => import('@/views/pages/CreditRemboursement.vue')
+                },
+                {
+                    path:'/pages/Accueil',
+                    name:'Accueil',
+                    component:() => import('@/views/pages/Accueil.vue')
+                },
+                {
+                    path:'/pages/AccueilUser',
+                    name:'AcceuilUser',
+                    component:() => import('@/views/pages/AccueilUser.vue')
+                },
+                {
+                    path:'/pages/SendMoney',
+                    name:'SendMoney',
+                    component:() => import('@/views/pages/SendMoney.vue')
+                },
+                {
+                    path:'/pages/CreateCashout',
+                    name:'CreateCashout',
+                    component:() => import('@/views/pages/CreateCashout.vue')
+                },
+                {
+                    path:'/pages/CashOutListe',
+                    name:'CashOutListe',
+                    component:() => import('@/views/pages/CashOutListe.vue')
+                },
+                {
+                    path:'/pages/HistoTransactionUser',
+                    name:'HistoTransactionUser',
+                    component:() => import('@/views/pages/HistoTransactionUser.vue')
+                },
+                {
+                    path:'/pages/ProfileUser',
+                    name:'ProfileUser',
+                    component:() => import('@/views/pages/ProfileUser.vue')
+                },
+
                 {
                     path: '/uikit/formlayout',
                     name: 'formlayout',
@@ -107,7 +201,17 @@ const router = createRouter({
             ]
         },
         {
-            path: '/landing',
+            path: '/',
+            name: 'login',
+            component: () => import('@/views/pages/auth/Login.vue')
+        },
+        {
+            path:'/pages/SetPassword',
+            name:'SetPassword',
+            component:() =>import('@/views/pages/SetPassword.vue')
+        },
+        {
+            path: '/londing',
             name: 'landing',
             component: () => import('@/views/pages/Landing.vue')
         },
@@ -117,11 +221,7 @@ const router = createRouter({
             component: () => import('@/views/pages/NotFound.vue')
         },
 
-        {
-            path: '/auth/login',
-            name: 'login',
-            component: () => import('@/views/pages/auth/Login.vue')
-        },
+ 
         {
             path: '/auth/access',
             name: 'accessDenied',

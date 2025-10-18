@@ -2,7 +2,14 @@
 import { useLayout } from '@/layout/composables/layout';
 import AppConfigurator from './AppConfigurator.vue';
 
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
+
+function signOut(){
+    return router.push('/')
+}
 </script>
 
 <template>
@@ -30,7 +37,7 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
                     </g>
                 </svg>
 
-                <span>SAKAI</span>
+                <span>GECLUB</span>
             </router-link>
         </div>
 
@@ -64,8 +71,8 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
                         <i class="pi pi-calendar"></i>
                         <span>Calendar</span>
                     </button>
-                    <button type="button" class="layout-topbar-action">
-                        <i class="pi pi-inbox"></i>
+                    <button @click="signOut" type="button" class="layout-topbar-action">
+                        <i class="pi pi-sign-out"></i>
                         <span>Messages</span>
                     </button>
                     <button type="button" class="layout-topbar-action">
