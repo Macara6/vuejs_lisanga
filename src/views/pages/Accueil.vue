@@ -2,7 +2,6 @@
 
 <script setup>
  import { fetchUser, fetchAllCredit, fetchHistoriqueTransaction,fetchCashout, fetchCycle, updateCycle} from '@/service/Api';
-import { all } from 'axios';
  import { computed, onMounted, ref } from 'vue';
 
  const users = ref([]);
@@ -87,10 +86,13 @@ async function saveCycleUpdate(){
 
 
  async function fechedUsers(){
+    const isSuperUser = localStorage.getItem('is_superuser') === 'true';
     try{
         const response = await fetchUser();
-        const currentUser = localStorage.getItem('is_superuser');
-        users.value = response.filter(user => user.id !=currentUser);
+        const currentUserId = Number(localStorage.getItem('id')); 
+        
+           users.value = response.filter(user => !user.is_superuser && user.id !== currentUserId);
+        console.log('liste des utilisateur sans le supeuser : ', users)
         const allcredits = await fetchAllCredit();
         const creditsPaid = (await fetchAllCredit()).filter(c => c.is_paid);
         const allUserOrBalance = (await fetchUser()).filter(cb => cb.balance !=0);

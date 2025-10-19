@@ -73,7 +73,7 @@ function signOut(){
                     </button>
                     <button @click="signOut" type="button" class="layout-topbar-action">
                         <i class="pi pi-sign-out"></i>
-                        <span>Messages</span>
+                        <span>Quitter</span>
                     </button>
                     <button type="button" class="layout-topbar-action">
                         <i class="pi pi-user"></i>

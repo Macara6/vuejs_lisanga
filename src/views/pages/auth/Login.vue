@@ -49,48 +49,86 @@ function pageSetPassword(){
 </script>
 
 <template>
-   
-    <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
-  <div class="flex flex-col items-center justify-center">
-    <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20 rounded-lg shadow-lg">
+  <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-full p-4">
+    <div
+      class="w-full max-w-md bg-surface-0 dark:bg-surface-900 py-10 px-6 sm:px-10 rounded-2xl shadow-lg flex flex-col items-center transition-all duration-300"
+    >
+      <!-- Titre -->
       <div class="text-center mb-8">
-        <!-- Logo SVG -->
-
-        <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">GECLUB</div>
-        <span class="text-muted-color font-medium">connecter pour continuer</span>
-        <div v-if="errorMessage" class="text-red-500 mt-2 text-center w-full">{{ errorMessage }}</div>
+        <div class="text-surface-900 dark:text-surface-0 text-4xl font-bold mb-2 tracking-wide">
+          GECLUB
+        </div>
+        <span class="text-muted-color font-medium">Connectez-vous pour continuer</span>
+        <div v-if="errorMessage" class="text-red-500 mt-3 text-center text-sm">
+          {{ errorMessage }}
+        </div>
       </div>
 
-      <div>
-        <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Nom d'utilisateur</label>
-        <InputText id="email1" type="text" placeholder="nom d'utilisateur" class="w-full md:w-[30rem] mb-8" v-model="username" />
+      <!-- Formulaire -->
+      <div class="w-full">
+        <label
+          for="username"
+          class="block text-surface-900 dark:text-surface-0 text-base sm:text-lg font-medium mb-2"
+          >Nom d'utilisateur</label
+        >
+        <InputText
+          id="username"
+          type="text"
+          placeholder="Entrez votre nom d'utilisateur"
+          class="w-full mb-6"
+          v-model="username"
+        />
 
-        <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Mot de passe </label>
-        <Password id="password1" v-model="password" placeholder="mot de passe" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
+        <label
+          for="password"
+          class="block text-surface-900 dark:text-surface-0 text-base sm:text-lg font-medium mb-2"
+          >Mot de passe</label
+        >
+        <Password
+          id="password"
+          v-model="password"
+          placeholder="Mot de passe"
+          :toggleMask="true"
+          class="w-full mb-4"
+          fluid
+          :feedback="false"
+        ></Password>
 
-        <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-          <span @click="pageSetPassword" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié</span>
+        <!-- Lien mot de passe oublié -->
+        <div class="flex items-center justify-end mb-6">
+          <span
+            @click="pageSetPassword"
+            class="font-medium no-underline text-right cursor-pointer text-primary text-sm sm:text-base hover:underline"
+          >
+            Mot de passe oublié ?
+          </span>
         </div>
 
+        <!-- Bouton connexion -->
         <Button
           label="Se connecter"
-          class="w-full flex justify-center items-center gap-2"
+          class="w-full flex justify-center items-center gap-2 text-base sm:text-lg py-3"
           @click="handleLogin"
           :disabled="loading"
         >
-          <i v-if="loading" class="pi pi-spin pi-spinner text-white"></i>
+          <i v-if="loading" class="pi pi-spin pi-spinner text-white text-lg"></i>
         </Button>
-
-        <img src="/demo/bilatech_log.png" alt="bilatech logo" class="h-40 mx-auto mb-4">
-
-        <p class="text-gray-400 text-xs text-center mt-6">
-          © {{ new Date().getFullYear() }} Bilatech — Tous droits réservés
-        </p>
       </div>
+
+      <!-- Logo -->
+      <img
+        src="/demo/bilatech_log.png"
+        alt="bilatech logo"
+        class="h-28 sm:h-40 mx-auto my-8 object-contain transition-all duration-300"
+      />
+
+      <!-- Footer -->
+      <p class="text-gray-400 text-xs text-center">
+        © {{ new Date().getFullYear() }} Bilatech — Tous droits réservés
+      </p>
     </div>
   </div>
-</div>
-
 </template>
+
 
 

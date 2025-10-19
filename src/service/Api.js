@@ -2,7 +2,7 @@
 import axios from "axios";
 
 
-const API_BASE = 'https://api.lisanga.org/';
+const API_BASE = ' https://api.lisanga.org/';
 
 
 
@@ -99,6 +99,20 @@ export async function updateUser(userId, userUpdateData){
         return response.data;
     }catch(error){
         console.error("Erreur backend:", error.response?.data);
+        throw error;
+    }
+}
+
+// functon to delete user
+export async function deleteUser(userId){
+    const DELETE_USER_URL = `${API_BASE}user/${userId}/delete/`;
+    try{
+        const response = await axios.delete(DELETE_USER_URL, {
+            headers: getAuthHeaders(),
+        });
+        return response.data;
+    }catch(error){
+        console.error("Erreur backend :",error.response?.data);
         throw error;
     }
 }

@@ -129,93 +129,153 @@ async function deleteSelectedSubstitute(){
 
 </script>
 
+
 <template>
-    <div>
-    <div class="card">
-        <div class="font-semibold text-xl mb-4">Liste des suppléants</div>
+  <div class="card p-4 sm:p-6">
+    <div class="font-semibold text-xl mb-6 text-center sm:text-left">Liste des suppléants</div>
 
-        <div class="flex justify-between items-center mb-4">
-        <Button label="Nouveau suppléant" icon="pi pi-plus" severity="secondary" @click="openNew" />
-        <!-- Barre de recherche -->
-        <span class="p-input-icon-left">
-           <i class="pi pi-search" />
-            <InputText v-model="searchQuery" placeholder="Rechercher...  " />
-        </span>
-        </div>
-          
-        <DataTable :value="filteredSubstitutes" scrollable scrollHeight="400px" class="mt-6">
-            <Column field="id" header="ID" style="min-width: 80px"></Column>
-            <Column field="first_name" header="Nom" style="min-width: 150px"></Column>
-            <Column field="last_name" header="Post-nom" style="min-width: 150px"></Column>
-            <Column field="email" header="Email" style="min-width: 200px"></Column>
-            <Column field="adress" header="Adresse" style="min-width: 200px"></Column>
-              <Column field="phone_number" header="Phone" style="min-width: 200px"></Column>
-            <Column header="Actions" style="min-width: 150px">
-            <template #body="{ data }">
-                <Button  class="mr-1" icon="pi pi-pencil"   tooltip="Modifier" @click="editeSubstitute(data)" />
-                <Button icon="pi pi-trash" severity="danger" @click="confirmDeleteSubstitute(data)" tooltip="Supprimer" />
-            </template>
-            </Column>
-        </DataTable>
+    <!-- Barre d’outils responsive -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
+      <Button
+        label="Nouveau suppléant"
+        icon="pi pi-plus"
+        severity="secondary"
+        class="w-full sm:w-auto"
+        @click="openNew"
+      />
+      <span class="p-input-icon-left w-full sm:w-auto">
+        <i class="pi pi-search" />
+        <InputText
+          v-model="searchQuery"
+          placeholder="Rechercher..."
+          class="w-full sm:w-72"
+        />
+      </span>
     </div>
-    
 
+    <!-- Table responsive -->
+    <div class="overflow-x-auto">
+      <DataTable
+        :value="filteredSubstitutes"
+        scrollable
+        scrollHeight="400px"
+        class="mt-4 min-w-[600px]"
+      >
+        <Column field="id" header="ID" style="min-width: 80px"></Column>
+        <Column field="first_name" header="Nom" style="min-width: 150px"></Column>
+        <Column field="last_name" header="Post-nom" style="min-width: 150px"></Column>
+        <Column field="email" header="Email" style="min-width: 200px"></Column>
+        <Column field="adress" header="Adresse" style="min-width: 200px"></Column>
+        <Column field="phone_number" header="Téléphone" style="min-width: 150px"></Column>
 
+        <Column header="Actions" style="min-width: 120px" class="text-center">
+          <template #body="{ data }">
+            <div class="flex justify-center gap-2">
+              <Button
+                icon="pi pi-pencil"
+                class="p-button-rounded p-button-text"
+                tooltip="Modifier"
+                @click="editeSubstitute(data)"
+              />
+              <Button
+                icon="pi pi-trash"
+                severity="danger"
+                class="p-button-rounded p-button-text"
+                @click="confirmDeleteSubstitute(data)"
+                tooltip="Supprimer"
+              />
+            </div>
+          </template>
+        </Column>
+      </DataTable>
+    </div>
 
-
-
-     <Dialog
+    <!-- Dialog Ajout / Modification -->
+    <Dialog
       v-model:visible="substituteDialog"
-       :style="{ width: '450px' }" 
-        :header="editMode? 'Modefier suppléant' :'Ajout suppléant' " 
-       :modal="true"
+      :style="{ width: '90%', maxWidth: '450px' }"
+      :header="editMode ? 'Modifier suppléant' : 'Ajouter un suppléant'"
+      modal
+    >
+      <div class="flex flex-col gap-6">
+        <div>
+          <label for="first_name" class="block font-bold mb-2">Nom</label>
+          <InputText
+            id="first_name"
+            v-model="first_name"
+            required
+            autofocus
+            :invalid="submitted && !first_name"
+            class="w-full"
+          />
+          <small v-if="submitted && !first_name" class="text-red-500">Nom requis.</small>
+        </div>
 
-       >
-            <div class="flex flex-col gap-6">
-                <div>
-                    <label for="name" class="block font-bold mb-3">Nom</label>
-                    <InputText id="first_name" v-model="first_name" required="true" autofocus :invalid="submitted && !first_name" fluid />
-                     <small v-if="submitted && !first_name" class="text-red-500">Nom requis.</small>
-                </div>
-                 <div>
-                    <label for="name" class="block font-bold mb-3">Post-Nom</label>
-                    <InputText id="last_name" v-model="last_name" required="true" autofocus :invalid="submitted && !last_name" fluid />
-                     <small v-if="submitted && !last_name" class="text-red-500">Post-nom requis.</small>
-                </div>
-               
+        <div>
+          <label for="last_name" class="block font-bold mb-2">Post-nom</label>
+          <InputText
+            id="last_name"
+            v-model="last_name"
+            required
+            :invalid="submitted && !last_name"
+            class="w-full"
+          />
+          <small v-if="submitted && !last_name" class="text-red-500">Post-nom requis.</small>
+        </div>
 
-                <div class="grid grid-cols-12 gap-4">
-                    <div class="col-span-6">
-                        <label for="email" class="block font-bold mb-3">E-mail </label>
-                        <InputText id="email" v-model="email" placeholder="ex: text@gmail.com" fluid />
-                    </div>
-                    <div class="col-span-6">
-                        <label for="adress" class="block font-bold mb-3">Adresse </label>
-                        <InputText id="adress" v-model="adress" placeholder="ex: kinshasa/limete/" fluid />
-                    </div>
-                    <div class="col-span-6">
-                        <label for="phone" class="block font-bold mb-3">Tél</label>
-                        <InputText id="phone" v-model="phone_number" integeronly fluid />
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="email" class="block font-bold mb-2">E-mail</label>
+            <InputText
+              id="email"
+              v-model="email"
+              placeholder="ex: text@gmail.com"
+              class="w-full"
+            />
+          </div>
 
-            <template #footer>
-                <Button label="Cancel" icon="pi pi-times" text @click="substituteDialog = false" />
-                <Button label="Save" icon="pi pi-check"  @click="saveSbstitute" />
-            </template>
-        </Dialog>
+          <div>
+            <label for="adress" class="block font-bold mb-2">Adresse</label>
+            <InputText
+              id="adress"
+              v-model="adress"
+              placeholder="ex: Kinshasa / Limete"
+              class="w-full"
+            />
+          </div>
 
-        <Dialog v-model:visible="deleteSubstituteDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
-            <div class="flex items-center gap-4">
-                <i class="pi pi-exclamation-triangle !text-3xl" />
-                <span>Êtes-vous sûr de vouloir supprimer ce suppléant ?</span>
-            </div>
-            <template #footer>
-                <Button label="No" icon="pi pi-times" text @click="deleteSubstituteDialog = false" />
-                <Button label="Yes" icon="pi pi-check"  text @click="deleteSelectedSubstitute"  />
-            </template>
-        </Dialog>
+          <div>
+            <label for="phone" class="block font-bold mb-2">Téléphone</label>
+            <InputText id="phone" v-model="phone_number" class="w-full" />
+          </div>
+        </div>
+      </div>
 
-</div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <Button label="Annuler" icon="pi pi-times" text @click="substituteDialog = false" />
+          <Button label="Enregistrer" icon="pi pi-check" @click="saveSbstitute" />
+        </div>
+      </template>
+    </Dialog>
+
+    <!-- Dialog de suppression -->
+    <Dialog
+      v-model:visible="deleteSubstituteDialog"
+      :style="{ width: '90%', maxWidth: '450px' }"
+      header="Confirmation"
+      modal
+    >
+      <div class="flex items-center gap-4">
+        <i class="pi pi-exclamation-triangle text-3xl text-yellow-500" />
+        <span>Êtes-vous sûr de vouloir supprimer ce suppléant ?</span>
+      </div>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <Button label="Non" icon="pi pi-times" text @click="deleteSubstituteDialog = false" />
+          <Button label="Oui" icon="pi pi-check" text @click="deleteSelectedSubstitute" />
+        </div>
+      </template>
+    </Dialog>
+  </div>
 </template>
