@@ -7,7 +7,7 @@ const matricule = ref('');
 const targetUser = reactive({});
 const creditList = ref([]);
 const selectedCredit = ref(null); // on stocke uniquement l'ID
-const amount = ref(0);
+const amount = ref(null);
 const errors = reactive({});
 const summary = reactive({});
 const loading = ref(false);
@@ -34,7 +34,7 @@ async function nextFromMatricule() {
 
         // Récupérer uniquement les crédits non payés
         const allCredits = await fetchUserCredit(user.id);
-        creditList.value = allCredits.filter(c => !c.is_paid);
+        creditList.value = allCredits.filter(c => !c.is_paid && Number(c.princilal) > 0);
 
         step.value = 2;
     } catch(error) {

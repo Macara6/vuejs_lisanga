@@ -44,7 +44,12 @@ const userToDelete = ref(null);
 
 const loading = ref(false);
 const usersCache = ref(null); // stocke la dernier requiperation
-const lastFetchTime = ref(null); // temps du recuperation
+const lastFetchTime = ref(null); 
+
+//cashe local
+const CACHE_KEY_USERS = "cached_users";
+const CACHE_KEY_TIMESTAMP = "cached_users_timestamp";
+const CACHE_DURATION = 5 * 60 * 1000;
 
 function openNew(){
     userDialog.value = true;
@@ -53,8 +58,12 @@ function openNew(){
 
 
 onMounted(async() => {
-   await fetchedSubstitute();
-   await fetchedUsers();
+  loading.value = true;
+  try{
+    await Promise.all([fetchedSubstitute(), fetchedUsers()]);
+  }finally{
+    loading.value = false;
+  }
 });
 
 function confirmDeleteUser(user) {
@@ -77,6 +86,7 @@ async function deleteSelectedUser(){
     showDeleteUser.value= false;
     userToDelete.value = null;
     await fetchedUsers(true);
+    await refreshSubstitutes();
 
    
     }catch(error){
@@ -92,30 +102,57 @@ async function deleteSelectedUser(){
 }
 
 
+async function fetchedSubstitute(forceReload = false){
+    const CACHE_KEY_SUBS = "cached_substitutes";
+    const CACHE_KEY_SUBS_TIME = "cached_substitutes_timestamp";
+    const CACHE_DURATION = 10 * 60 * 1000;
 
-async function fetchedSubstitute(){
+    const now = Date.now();
+    const cachedSubs = localStorage.getItem(CACHE_KEY_SUBS);
+    const cachedTime = localStorage.getItem(CACHE_KEY_SUBS_TIME);
+
+    if (cachedSubs && cachedTime && !forceReload && now - cachedTime < CACHE_DURATION){
+       substitutes.value = JSON.parse(cachedSubs);
+      return;
+    }
     try{
-        substitutes.value = await fetchSubstitute();   
+        const response = await fetchSubstitute();
+        substitutes.value =  response;
+        localStorage.setItem(CACHE_KEY_SUBS, JSON.stringify(response));
+        localStorage.setItem(CACHE_KEY_SUBS_TIME, now.toString());
     }catch(error){
         console.error('error for fetching substitute', error);
     }
 }
+
+async function refreshSubstitutes() {
+  localStorage.removeItem("cached_substitutes");
+  localStorage.removeItem("cached_substitutes_timestamp");
+  await fetchedSubstitute(true);
+}
+
 async function fetchedUsers(forceReload = false){
-  if(usersCache.value && !forceReload){
-    users.value =usersCache.value;
-    return
+  const now = Date.now();
+
+  const cachedUsers = localStorage.getItem(CACHE_KEY_USERS);
+  const cachedTime = localStorage.getItem(CACHE_KEY_TIMESTAMP);
+
+  if(cachedUsers && cachedTime && !forceReload && now - cachedTime < CACHE_DURATION){
+    users.value = JSON.parse(cachedUsers);
+    return;
   }
+
   loading.value = true;
 
     try{
         const response = await fetchUser();
         const currentUser = localStorage.getItem('id');
          const filtered = response.filter(user => user.id != currentUser);
-
         users.value = filtered;
+       
+        localStorage.setItem(CACHE_KEY_USERS, JSON.stringify(filtered));
+        localStorage.setItem(CACHE_KEY_TIMESTAMP, now.toString());
 
-        usersCache.value = users.value;
-        
     }catch(error){
        console.error('error for fetching user', error); 
     }finally{
@@ -235,6 +272,7 @@ async function saveUser(){
         userDialog.value = false;
         editMode.value = false;
         await fetchedUsers(true);
+        await refreshSubstitutes();
         resetForm();
     } catch(error){
         console.log('Error creating user', error);
@@ -319,9 +357,6 @@ function downloadPDF(value){
 
 
 }
-
-
-
 
 </script>
 

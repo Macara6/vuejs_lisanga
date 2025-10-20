@@ -1,7 +1,7 @@
 
 
 <script setup>
- import { fetchUser, fetchAllCredit, fetchHistoriqueTransaction,fetchCashout, fetchCycle, updateCycle} from '@/service/Api';
+ import { fetchUser, fetchAllCredit, fetchHistoriqueTransaction,fetchAllTransactionCredit, fetchCycle, updateCycle, cancelCreditTransaction} from '@/service/Api';
  import { computed, onMounted, ref } from 'vue';
 
  const users = ref([]);
@@ -9,6 +9,7 @@
  const creditAllPaid = ref([]);
  const allUserBalance = ref([]);
  const  histoTransaction = ref([]);
+ const creditTransactions = ref([]);
  const cashoutList = ref([]);
 const userName = localStorage.getItem('username')
 const currentCycle = ref(null);
@@ -16,13 +17,25 @@ const cycleProgress = ref(0);
 
 const editingCycle = ref({});
 const isDialogVisible = ref(false);
+const loading = ref(false); 
 
 const cycles = ref([]);
 
- onMounted(async() => {
-    await fechedUsers();
-    await fetchCurrentCycle();
- })
+
+
+onMounted(async () => {
+  const cached = localStorage.getItem('dashboard_cache');
+
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    users.value = parsed.users;
+    credits.value = parsed.credits;
+  }
+
+  await Promise.all([fechedUsers(), fetchCurrentCycle()]);
+  localStorage.setItem('dashboard_cache', JSON.stringify({ users: users.value, credits: credits.value }));
+
+});
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString();
@@ -70,6 +83,8 @@ function openEditDialog() {
   editingCycle.value = { ...currentCycle.value };
   isDialogVisible.value = true;
 }
+
+
 async function saveCycleUpdate(){
   try{
     if (!editingCycle.value?.id) return;
@@ -85,30 +100,38 @@ async function saveCycleUpdate(){
 }
 
 
- async function fechedUsers(){
-    const isSuperUser = localStorage.getItem('is_superuser') === 'true';
-    try{
-        const response = await fetchUser();
-        const currentUserId = Number(localStorage.getItem('id')); 
-        
-           users.value = response.filter(user => !user.is_superuser && user.id !== currentUserId);
-        console.log('liste des utilisateur sans le supeuser : ', users)
-        const allcredits = await fetchAllCredit();
-        const creditsPaid = (await fetchAllCredit()).filter(c => c.is_paid);
-        const allUserOrBalance = (await fetchUser()).filter(cb => cb.balance !=0);
-        const transaction = (await fetchHistoriqueTransaction()).filter(ts => ts.transaction_type =='RETRAIT');
-        const cashouts = await fetchCashout();
-        cashoutList.value = cashouts;
-        histoTransaction.value = transaction;
-        allUserBalance.value = allUserOrBalance;
-        creditAllPaid.value = creditsPaid
-        credits.value = allcredits;
-    
-       
-    }catch(error){
-        console.error('erreur for fetching user', error);
-    }
- }
+
+
+ async function fechedUsers() {
+  try {
+    const [
+      usersRes,
+      allCreditsRes,
+      historiqueRes,
+      allTransacCreditRes
+    ] = await Promise.all([
+      fetchUser(),
+      fetchAllCredit(),
+      fetchHistoriqueTransaction(),
+      fetchAllTransactionCredit(),
+    ]);
+
+    const currentUserId = Number(localStorage.getItem('id'));
+
+    // Nettoyage des données
+    users.value = usersRes.filter(u => !u.is_superuser && u.id !== currentUserId);
+    credits.value = allCreditsRes.filter(c => c.princilal > 0); // ⚡ exclut les crédits à 0
+    creditAllPaid.value = allCreditsRes.filter(c => c.is_paid);
+    histoTransaction.value = historiqueRes.filter(ts => ts.transaction_type === 'RETRAIT');
+    creditTransactions.value = allTransacCreditRes.filter(ct => ct.transaction_type === 'REMBOURSEMENT');
+    allUserBalance.value = usersRes.filter(u => u.balance !== 0);
+
+    console.log('✅ Données chargées avec succès');
+  } catch (error) {
+    console.error("Erreur lors du chargement :", error);
+  }
+}
+
 
  function formatUSD(value) {
     return new Intl.NumberFormat('en-US', { 
@@ -116,70 +139,86 @@ async function saveCycleUpdate(){
         currency: 'USD' 
     }).format(value);
 }
- const usersBalance = computed(() => {
 
-    let totalBalance = 0;
-    let totalSocial = 0;
-    let totalprincilal =0;
-    let totalDue = 0;
-    let creditsPaid = 0;
-    let totalRetrait = 0;
-    let totalCashout=0;
+const usersBalance = computed(() => {
+  const total = {
+    balance: 0,
+    social: 0,
+    principal: 0,
+    due: 0,
+    duePaid: 0,
+    paid: 0,
+    creditNotPaid: 0,
+    retrait: 0,
+    remboursement: 0,
+  };
 
-    users.value.forEach(u =>{
-        totalBalance +=Number(u.balance || 0);
-        totalSocial +=Number(u.social|| 0);
-    });
+  users.value.forEach(u => {
+    total.balance += Number(u.balance || 0);
+    total.social += Number(u.social || 0);
+  });
 
-    credits.value.forEach(c => {
-        totalprincilal += Number(c.princilal || 0);
-        totalDue += Number(c.total_due || 0);
-    });
-    
-    creditAllPaid.value.forEach(cp => {
-         creditsPaid += Number(cp.total_due || 0);
-    })
-    histoTransaction.value.forEach(histp  => {
-        totalRetrait += Number(histp.amount || 0);
-    })
-    cashoutList.value.forEach(am => {
-      totalCashout += Number(am.total_amount || 0);
-    })
+  credits.value.forEach(c => {
+    const principal = Number(c.princilal || 0);
+    const due = Number(c.total_due || 0);
+    const balance = Number(c.balance_due || 0);
 
-    let creditNotPaid = totalDue - creditsPaid;
-    let totalInteret = (totalprincilal * 10)/100; 
-    let totalDime = (totalInteret *10)/100;
-    let restInteret = totalInteret - totalDime;
-    
-    return {
-        totalBalance:formatUSD(totalBalance),
-        totalSocial:formatUSD(totalSocial),
-        totalprincilal:formatUSD(totalprincilal),
-        totalDue:formatUSD(totalDue),
-        creditsPaid:formatUSD(creditsPaid),
-        creditNotPaid:formatUSD(creditNotPaid),
-        totalInteret:formatUSD(totalInteret),
-        totalDime:formatUSD(totalDime),
-        restInteret:formatUSD(restInteret),
-        totalRetrait:formatUSD(totalRetrait),
-        totalCashout:formatUSD(totalCashout)
-    }
- });
+    total.principal += principal;
+    total.due += due;
+    total.paid += due - balance;
+
+    if (c.is_paid) total.duePaid += due;
+    else total.creditNotPaid += balance;
+  });
+
+  histoTransaction.value.forEach(h => total.retrait += Number(h.amount || 0));
+  creditTransactions.value.forEach(ct => total.remboursement += Number(ct.amount || 0));
+
+  const interet = (total.principal * 10) / 100;
+  const dime = (interet * 10) / 100;
+  const restInteret = interet - dime;
+
+  return {
+    totalBalance: formatUSD(total.balance),
+    totalSocial: formatUSD(total.social),
+    totalprincilal: formatUSD(total.principal),
+    totalDue: formatUSD(total.due),
+    totalDuePaid: formatUSD(total.duePaid),
+    creditsPaid: formatUSD(total.paid),
+    creditNotPaid: formatUSD(total.creditNotPaid),
+    totalRetrait: formatUSD(total.retrait),
+    rebourser: formatUSD(total.remboursement),
+    totalInteret: formatUSD(interet),
+    totalDime: formatUSD(dime),
+    restInteret: formatUSD(restInteret),
+  };
+});
+
 
 
 </script>
+
 <template>
     <div>
         <div class="p-6 space-y-6">
-      <!-- Bouton retour -->
+      <!-- Bouton retour -->   
+
       <div class="flex items-center justify-between">
 
-        <h1 class="text-2xl font-bold text-gray-700">{{ userName }} <i class="pi pi-verified text-blue-500 text-3xl"></i> </h1>
+        <h1 class="text-2xl font-bold text-gray-700">{{ userName }} 
+          <i class="pi pi-verified text-blue-500 text-3xl"></i> </h1>
         <i class="pi pi-building text-blue-500 text-3xl"></i>
+      </div>
+
+      <div v-if="loading" class="flex flex-col items-center justify-center h-[50vh] space-y-4">
+        <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="5" />
+        <p class="text-gray-500 text-lg">Chargement des données...</p>
       </div>
 
       <!-- Statistiques utilisateur -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+
         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex items-center justify-between">
           <div>
             <p class="text-gray-500 text-sm">Total Épargne</p>
@@ -242,9 +281,9 @@ async function saveCycleUpdate(){
 
         <div  class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex items-center justify-between">
           <div>
-            <p class="text-gray-500 text-sm"> Déjà rembourser</p>
+            <p class="text-gray-500 text-sm"> Total crédits complètement payés </p>
             <p class="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              {{ usersBalance.creditsPaid }} 
+              {{ usersBalance.totalDuePaid }} 
             </p>
             <span class="text-red-500 text-sm">sur {{ usersBalance.totalDue }} </span>
           </div>
@@ -254,6 +293,18 @@ async function saveCycleUpdate(){
         </div>
 
 
+        <div  class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm"> déjà rembourser </p>
+            <p class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+              {{ usersBalance.rebourser }} 
+            </p>
+            <span class="text-red-500 text-sm">sur {{ usersBalance.totalDue }} </span>
+          </div>
+          <div class="bg-green-100 dark:bg-blue-700/20 p-3 rounded-full">
+            <i class="pi pi-arrow-up-right text-blue-500 text-xl"></i>
+          </div>
+        </div>
 
 
         <div  class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex items-center justify-between">
@@ -295,19 +346,6 @@ async function saveCycleUpdate(){
           </div>
           <div class="bg-green-100 dark:bg-blue-700/20 p-3 rounded-full">
             <i class="pi pi-envelope text-blue-500 text-xl"></i>
-          </div>
-        </div>
-
-        <div  class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex items-center justify-between">
-          <div>
-            <p class="text-gray-500 text-sm"> Total sotrie</p>
-            <p class="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              {{ usersBalance.totalCashout }}
-            </p>
-            <span class="text-red-500 text-sm">  </span>
-          </div>
-          <div class="bg-green-100 dark:bg-blue-700/20 p-3 rounded-full">
-            <i class="pi pi-star-half text-blue-500 text-xl"></i>
           </div>
         </div>
       </div>

@@ -7,7 +7,7 @@ import { useToast } from "primevue/usetoast";
 const step = ref(1);
 const matricule = ref('');
 const targetUser = reactive({});
-const amount = ref(0);
+const amount = ref(null);
 const interest_rate = ref(10); // 10% par défaut
 const due_date = ref(null);
 const errors = reactive({});
@@ -60,7 +60,7 @@ async function submitCredit(){
             due_date: finalDueDate,
         };
         const res = await createCredit(creditData);
-        toast.add({ severity: "success", summary: "Succès", detail: "demande crédit effectué avec succès !" });
+        toast.add({ severity: "success", summary: "Succès", detail: "demande crédit effectué avec succès !" ,life: 3000});
         if(res.error){
             errors.amount = [res.message || JSON.stringify(res.data)];
             loading.value = false;
@@ -140,17 +140,20 @@ function newCredit(){
             <p><b>Solde actuel :</b> {{ targetUser.balance }} USD</p>
           </div>
 
-          <label class="font-medium text-gray-700 dark:text-gray-200 mt-4">Montant du crédit</label>
-          <InputNumber
-            v-model="amount"
-            placeholder="0.00"
-            mode="decimal"
-            locale="en-US"          
-            decimalSeparator="."
-            minFractionDigits="2"
-            maxFractionDigits="2"
-            class="w-full border-gray-300 rounded-lg"
-          />
+        <div>
+            <label class="font-medium text-gray-700 dark:text-gray-200 text-sm sm:text-base">Montant du crédit</label>
+            <InputNumber
+              v-model="amount"
+              placeholder="0.00"
+              mode="decimal"
+              locale="en-US"
+              decimalSeparator="."
+              minFractionDigits="2"
+              maxFractionDigits="2"
+              class="w-full border-gray-300 rounded-lg"
+            />
+          </div>
+          
           <div v-if="errors.amount" class="text-red-600 text-sm">
             <div v-for="(e, i) in errors.amount" :key="i">{{ e }}</div>
           </div>

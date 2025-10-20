@@ -44,8 +44,8 @@ const model = computed(() => {
           { label: 'Historiques transactions', icon: 'pi pi-history', to: '/pages/Historiques' },
           { label: 'Liste crédits', icon: 'pi pi-clipboard', to: '/pages/HistoriqueCredit' },
           { label: 'Histo Crédit & Rembou', icon: 'pi pi-undo', to: '/pages/CreditRemboursement' },
-          { label:'Liste bon de sortie', icon:'pi pi-list', to:'/pages/CashOutListe'},
-          {label:'Bon de sortie ', icon:'pi pi-arrow-down-left', to:'/pages/CreateCashout'},
+          //{ label:'Liste bon de sortie', icon:'pi pi-list', to:'/pages/CashOutListe'},
+          //{label:'Bon de sortie ', icon:'pi pi-arrow-down-left', to:'/pages/CreateCashout'},
           {label:"Mon compte", icon:'pi pi-user', to:'/pages/ProfileUser'},
         ]
       }
