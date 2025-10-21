@@ -87,7 +87,7 @@ const creditStats = computed(() => {
   });
 
   allCreditsUser.value.forEach(cp => {
-      allTotalPrincilal += Number(cp.princilal || 0);
+      allTotalPrincilal += Number(cp.total_due || 0);
   })
   users.value.forEach(us => {
       balenceUsers += Number(us.balance || 0);
@@ -223,7 +223,7 @@ function formatValue(key, value) {
         <div>
           <p class="text-gray-500 text-sm"> interêt</p>
           <p class="text-lg font-semibold text-gray-800 dark:text-gray-100">
-            {{ creditStats.interUser }}
+            {{formatUSD(user.total_interest_user)}}
           </p>
          
         </div>

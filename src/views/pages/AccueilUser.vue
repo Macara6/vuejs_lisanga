@@ -84,6 +84,7 @@ async function fetchCurrentCycle() {
 
 
 async function fetchedCreditUser(){
+  
 
   try{
     const userId = localStorage.getItem('id');
@@ -91,7 +92,7 @@ async function fetchedCreditUser(){
     const allCredits = await fetchAllCredit();
     allCreditsUser.value = allCredits;
     credits.value = response;
-    console.log("credit user ", response)
+    console.log("credit user ")
   }catch(error){
     console.error('erreur lors de la recuperation du credit user', error);
     throw error;
@@ -105,13 +106,16 @@ async function fetchedUserDetail(){
         const response = await userDetail(userId);
         const allUser = await fetchUser();
         users.value = allUser;
+
         user.value =response;
+        console.log( 'username', user.value.first_name);
     } catch(error){
          console.error("Erreur lors du chargement de l'utilisateur :", error);
     } finally{
         loading.value = false;
     }
 }
+
  function formatUSD(value) {
     return new Intl.NumberFormat('en-US', { 
         style: 'currency', 
@@ -132,7 +136,7 @@ const creditStats = computed(() => {
   });
 
   allCreditsUser.value.forEach(cp => {
-      allTotalPrincilal += Number(cp.princilal || 0);
+      allTotalPrincilal += Number(cp.total_due || 0);
   })
   users.value.forEach(us => {
       balenceUsers += Number(us.balance || 0);
@@ -142,7 +146,7 @@ const creditStats = computed(() => {
   let totalInteret = (allTotalPrincilal *10)/100;
   let totalDime = (totalInteret *10)/100;
   let restIntert = totalInteret - totalDime;
-  let interUser =( user.value.balance * restIntert)/balenceUsers
+  let interUser = 0;
 
   return {
     totalPrincilal,

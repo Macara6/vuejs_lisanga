@@ -89,4 +89,77 @@ function checkActiveRoute(item) {
     </li>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.layout-menuitem-root-text {
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+}
+
+.layout-menuitem-icon {
+  margin-right: 0.5rem;
+}
+
+/* Menu principal */
+li.layout-root-menuitem {
+  list-style: none;
+  position: relative;
+}
+
+/* Sous-menu */
+ul.layout-submenu {
+  padding-left: 1rem;
+  margin: 0;
+}
+
+/* Transition pour sous-menu */
+.layout-submenu-enter-active,
+.layout-submenu-leave-active {
+  transition: max-height 0.3s ease;
+}
+.layout-submenu-enter,
+.layout-submenu-leave-to {
+  max-height: 0;
+  overflow: hidden;
+}
+
+/* Menu responsive */
+@media (max-width: 1024px) {
+  li.layout-root-menuitem {
+    display: block;
+    width: 100%;
+  }
+  
+  a, router-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+  }
+
+  .layout-submenu {
+    padding-left: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout-menuitem-text {
+    font-size: 0.9rem;
+  }
+  
+  .layout-menuitem-icon {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  a, router-link {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .layout-submenu {
+    padding-left: 0.25rem;
+  }
+}
+</style>
+
