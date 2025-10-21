@@ -179,7 +179,7 @@ const usersBalance = computed(() => {
 
 
 
-  const interet = (total.principal * 10) / 100;
+  const interet = (total.due * 10) / 100;
   const dime = (interet * 10) / 100;
   const restInteret = interet - dime;
 
