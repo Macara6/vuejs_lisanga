@@ -13,6 +13,7 @@ const filterReference = ref('');
 const toast = useToast();
 const cancelDialogVisible = ref(false);
 const selectedTransaction = ref(null);
+const loading = ref(false);
 
 
 const filterTransactions = computed(() => {
@@ -30,12 +31,32 @@ onMounted(async () => {
   await fetchingTransactionHisto();
 });
 
-async function fetchingTransactionHisto() {
+async function fetchingTransactionHisto(forceReload = false) {
+  const CACHE_KEY_TRANS ="cached_transactions";
+  const CACHE_KEY_TRANS_TIME="cached_transactions_time";
+  const CACHE_DURATION = 10 * 60 *1000;
+  const now = Date.now();
+
+  const CacheTransactions = localStorage.getItem(CACHE_KEY_TRANS);
+  const cacheTime = localStorage.getItem(CACHE_KEY_TRANS_TIME);
+
+  if(CacheTransactions && cacheTime && !forceReload && now - Number(cacheTime) < CACHE_DURATION){
+    transactions.value = JSON.parse(CacheTransactions);
+    return;
+  }
+
+  loading.value = true;
   try {
     const response = await fetchHistoriqueTransaction();
     transactions.value = response || [];
+
+    localStorage.setItem(CACHE_KEY_TRANS, JSON.stringify(response));
+    localStorage.setItem(CACHE_KEY_TRANS_TIME, now.toString());
+
   } catch (error) {
     console.error('Erreur lors du fetch', error);
+  }finally{
+    loading.value = false;
   }
 }
 
@@ -100,7 +121,7 @@ async function proceedCancelTransaction(){
     toast.add({severity: "success",summary: "Transaction annulée",detail: result.message,life: 3000
     });
     cancelDialogVisible.value = false;
-    await fetchingTransactionHisto();
+    await fetchingTransactionHisto(true);
   }catch(error){
       toast.add({severity: "error",summary: "Erreur",detail: "Impossible d'annuler la transaction",life: 3000
     });
@@ -121,7 +142,11 @@ async function proceedCancelTransaction(){
       <template #content>
         <div v-if="transactions.length === 0" class="text-gray-500 text-center py-6">
           <i class="pi pi-inbox text-2xl sm:text-3xl"></i>
-          <p>Aucune transaction trouvée pour cet utilisateur.</p>
+          <p>Pas des données trouvée..</p>
+          <div v-if="loading" class="flex flex-col items-center justify-center h-[50vh] space-y-4">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+            <p class="text-gray-500 text-lg">Chargement des données...</p>
+          </div>
         </div>
 
         <div v-else class="flex flex-col">

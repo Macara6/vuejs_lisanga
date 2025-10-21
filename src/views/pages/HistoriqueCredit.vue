@@ -6,32 +6,53 @@ import autoTable from 'jspdf-autotable';
 
 
 
+
 const credits = ref([]);
 const filterStatus = ref("");
 const startDate = ref(""); 
 const endDate = ref(""); 
- const isSuperUser = localStorage.getItem('is_superuser') === 'true';
+const isSuperUser = localStorage.getItem('is_superuser') === 'true';
 
+const loading = ref(false)
 onMounted(async () => {
     await fechingCredits();
 })
 
-async function fechingCredits(){
+async function fechingCredits(forceReload = false){
+  const CACHE_KEY_CREDIT = "cached_credits";
+  const CACHE_KEY_CREDIT_TIME ="cached_credits_time";
+  const CACHE_DURATION =10*60*1000;
+  const now = Date.now();
+
+  const cacheCredits = localStorage.getItem(CACHE_KEY_CREDIT);
+  const cacheTime = localStorage.getItem(CACHE_KEY_CREDIT_TIME);
+ 
+
+  if(cacheCredits && cacheTime && !forceReload && now - Number(cacheTime) < CACHE_DURATION){
+    credits.value = JSON.parse(cacheCredits);
+    return;
+  }
   const userId = localStorage.getItem('id');
+   loading.value = true;
     try{
       if(isSuperUser){
         const response = await fetchAllCredit();
          credits.value = response;
-         console.log(' credits superuser', credits.value)
+
+         localStorage.setItem(CACHE_KEY_CREDIT, JSON.stringify(response));
+         localStorage.setItem(CACHE_KEY_CREDIT_TIME, now.toString());
       }else{
         credits.value = await fetchUserCredit(userId)
-        console.log(' credits user simple', credits.value)
+       
       }
     }catch(error){
         console.log('error to  feching crédit')
         throw error;
+    }finally{
+      loading.value=false;
     }
 }
+
 const filteredCredits = computed(() => {
     return credits.value.filter(c => {
         const statusMatch =
@@ -127,9 +148,18 @@ function downloadPDF() {
     </template>
 
     <template #content>
+      <div v-if="credits.length ===0" class="text-gray-500 text-center py-6">
+         <i class="pi pi-inbox text-2xl sm:text-3xl"></i>
+         <p>Pas des données trouvée..</p>
 
+        <div v-if="loading" class="flex flex-col items-center justify-center h-[50vh] space-y-4">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+            <p class="text-gray-500 text-lg">Chargement des données...</p>
+        </div>
 
-      <div  class="flex flex-col">
+      </div>
+
+      <div  v-else class="flex flex-col">
         <!-- Filtres -->
         <div class="flex flex-wrap gap-4 items-center mb-4">
            <div>

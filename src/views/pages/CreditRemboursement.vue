@@ -15,7 +15,9 @@ const toast = useToast();
 
 const cancelDialogVisible = ref(false);
 const selectedTransaction = ref(null);
- const isSuperUser = localStorage.getItem('is_superuser') === 'true';
+const isSuperUser = localStorage.getItem('is_superuser') === 'true';
+const loading = ref(false);
+ 
 
 onMounted(async() => {
     await fechedAllTransaction();
@@ -32,19 +34,38 @@ const filterTransactions = computed(() => {
     })
 }) 
 
-async function fechedAllTransaction(){
+async function fechedAllTransaction(forceReload = false){
+    const CACHE_KEY_TRANS_CREDIT = "cached_transactions_credit";
+    const CACHE_KEY_TRANS_TIME_CREDIT = "cached_transactions_time_credit";
+    const CACHE_DURATION = 10*60*1000;
+    const now =Date.now();
+
+    const cacheTransactions = localStorage.getItem(CACHE_KEY_TRANS_CREDIT);
+    const cacheTime = localStorage.getItem(CACHE_KEY_TRANS_TIME_CREDIT);
+
+   if(cacheTransactions && cacheTime && !forceReload && now - Number(cacheTime) < CACHE_DURATION){
+    transactions.value =JSON.parse(cacheTransactions);
+    return;
+   }
+   
     const userId = localStorage.getItem('id');
-    
+     loading.value = true;
     try{
         if(isSuperUser){
         const response = await fetchAllTransactionCredit();
         transactions.value = response;
-        console.log('transactions credits', transactions.value)
+        
+        localStorage.setItem(CACHE_KEY_TRANS_CREDIT, JSON.stringify(response));
+        localStorage.setItem(CACHE_KEY_TRANS_TIME_CREDIT, now.toString());
+    
+     
         }else{
           transactions.value = (await fetchAllTransactionCredit()).filter(us => us.user == userId);
         }
     }catch(error){
         console.error('erreur lors de la récuperation des transaction', error);
+    }finally{
+      loading.value = false;
     }
 }
 
@@ -59,7 +80,7 @@ async function proceedCancelTransaction(){
     const result = await cancelCreditTransaction(selectedTransaction.value.id);
     toast.add({severity: "success",summary: "Transaction annulée",detail: result.message,life: 3000});
     cancelDialogVisible.value =false;
-   await fechedAllTransaction();
+   await fechedAllTransaction(true);
   }catch(error){
       toast.add({severity: "error",summary: "Erreur",detail: "Impossible d'annuler la transaction",life: 3000
     });
@@ -126,6 +147,12 @@ function downloadPDF(){
       <div v-if="transactions.length === 0" class="text-gray-500 text-center py-6">
         <i class="pi pi-inbox text-2xl"></i>
         <p>Aucune transaction trouvée </p>
+
+        <div v-if="loading" class="flex flex-col items-center justify-center h-[50vh] space-y-4">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+            <p class="text-gray-500 text-lg">Chargement des données...</p>
+        </div>
+
       </div>
 
       <div v-else class="flex flex-col">
@@ -240,7 +267,6 @@ function downloadPDF(){
       <Button label="Oui, annuler" icon="pi pi-check" severity="danger" text @click="proceedCancelTransaction" />
     </template>
   </Dialog>
-
 
 
 </template>

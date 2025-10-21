@@ -11,7 +11,7 @@ import autoTable from "jspdf-autotable";
 
 const toast = useToast();
 const substitutes = ref([]);
-const balanceFrozen = ref(true);
+const balanceFrozen = ref(false);
 const router = useRouter();
 const users = ref([])
 

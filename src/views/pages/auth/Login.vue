@@ -56,7 +56,7 @@ function pageSetPassword(){
       <!-- Titre -->
       <div class="text-center mb-8">
         <div class="text-surface-900 dark:text-surface-0 text-4xl font-bold mb-2 tracking-wide">
-          GECLUB
+          LISANGA
         </div>
         <span class="text-muted-color font-medium">Connectez-vous pour continuer</span>
         <div v-if="errorMessage" class="text-red-500 mt-3 text-center text-sm">

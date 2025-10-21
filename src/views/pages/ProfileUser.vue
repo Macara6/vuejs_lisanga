@@ -35,23 +35,43 @@ function toggleConfirmPassword() {
   showConfirmPassword.value = !showConfirmPassword.value;
 }
 
-async function fetchdUserDetail(){
+async function fetchdUserDetail(forceReload = false){
+  const CACHE_KEY_USER_PROFIL = "cached_user_profil";
+  const CACHE_KEY_USER_PROFIL_TIME ="cached_user_profil_time";
+
+   const CACHE_DURATION_USER = 10*10*1000;
+   const now = Date.now();
+
+   const cachedUserProfil = localStorage.getItem(CACHE_KEY_USER_PROFIL);
+   const cachedTime = localStorage.getItem(CACHE_KEY_USER_PROFIL_TIME);
+
+   if(cachedUserProfil && cachedTime && !forceReload && now - Number(cachedTime) < CACHE_DURATION_USER){
+    user.value = JSON.parse(cachedUserProfil);
+    return;
+   }
+    
     try{
         const userId = localStorage.getItem('id');
         const response = await userDetail(userId);
         user.value = response;
+
+        localStorage.setItem(CACHE_KEY_USER_PROFIL, JSON.stringify(response));
+        localStorage.setItem(CACHE_KEY_USER_PROFIL_TIME, now.toString());
 
         username.value = response.username;
         email.value = response.email;
         phone_number.value = response.phone_number;
         first_name.value = response.first_name;
         last_name.value = response.last_name;
+
+
     }catch(error){
         console.error("erreur lors du chargement de l'utilisateur:", error);
     }finally{
         
     }
 }
+
 function formatLabel(key) {
   return key.replace(/_/g, ' ');
 }

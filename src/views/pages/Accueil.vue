@@ -25,7 +25,6 @@ const cycles = ref([]);
 
 onMounted(async () => {
   const cached = localStorage.getItem('dashboard_cache');
-
   if (cached) {
     const parsed = JSON.parse(cached);
     users.value = parsed.users;
@@ -34,7 +33,6 @@ onMounted(async () => {
 
   await Promise.all([fechedUsers(), fetchCurrentCycle()]);
   localStorage.setItem('dashboard_cache', JSON.stringify({ users: users.value, credits: credits.value }));
-
 });
 
 function formatDate(dateStr) {
@@ -124,7 +122,8 @@ async function saveCycleUpdate(){
     creditAllPaid.value = allCreditsRes.filter(c => c.is_paid);
     histoTransaction.value = historiqueRes.filter(ts => ts.transaction_type === 'RETRAIT');
     creditTransactions.value = allTransacCreditRes.filter(ct => ct.transaction_type === 'REMBOURSEMENT');
-    allUserBalance.value = usersRes.filter(u => u.balance !== 0);
+
+    allUserBalance.value = usersRes.filter(u => u.balance !=0);
 
     console.log('✅ Données chargées avec succès');
   } catch (error) {
@@ -168,11 +167,17 @@ const usersBalance = computed(() => {
     total.paid += due - balance;
 
     if (c.is_paid) total.duePaid += due;
-    else total.creditNotPaid += balance;
-  });
+    
 
+  });
   histoTransaction.value.forEach(h => total.retrait += Number(h.amount || 0));
   creditTransactions.value.forEach(ct => total.remboursement += Number(ct.amount || 0));
+  
+  total.creditNotPaid = credits.value
+  .filter(c => !c.is_paid)
+  .reduce((sum, c) => sum + Number(c.balance_due || 0), 0);
+
+
 
   const interet = (total.principal * 10) / 100;
   const dime = (interet * 10) / 100;
@@ -193,6 +198,11 @@ const usersBalance = computed(() => {
     restInteret: formatUSD(restInteret),
   };
 });
+
+const totalCredits = computed(() => credits.value.length);
+const paidCreditsCount = computed(() =>
+  credits.value.filter(c => c.is_paid).length
+);
 
 
 
@@ -283,9 +293,9 @@ const usersBalance = computed(() => {
           <div>
             <p class="text-gray-500 text-sm"> Total crédits complètement payés </p>
             <p class="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              {{ usersBalance.totalDuePaid }} 
+              {{ paidCreditsCount }} 
             </p>
-            <span class="text-red-500 text-sm">sur {{ usersBalance.totalDue }} </span>
+            <span class="text-red-500 text-sm">sur {{ totalCredits }} </span>
           </div>
           <div class="bg-green-100 dark:bg-blue-700/20 p-3 rounded-full">
             <i class="pi pi-arrow-up-right text-blue-500 text-xl"></i>
@@ -348,7 +358,23 @@ const usersBalance = computed(() => {
             <i class="pi pi-envelope text-blue-500 text-xl"></i>
           </div>
         </div>
+
+                <div  class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm"> Total Membres</p>
+            <p class="text-lg font-semibold text-gray-800 dark:text-gray-100">
+              {{ users.length }}
+            </p>
+            <span class="text-red-500 text-sm">  </span>
+          </div>
+          <div class="bg-green-100 dark:bg-blue-700/20 p-3 rounded-full">
+            <i class="pi pi-users text-blue-500 text-xl"></i>
+          </div>
+        </div>
+
+
       </div>
+
 
 
   <div class="p-6 space-y-6">
