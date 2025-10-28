@@ -135,7 +135,7 @@ function downloadApk() {
       />
       <!-- Footer -->
       <p class="text-gray-400 text-xs text-center">
-        © {{ new Date().getFullYear() }} produced by bilatech — All rights reserved
+        © {{ new Date().getFullYear() }} produit par bilatech — Tous droits réservés
       </p>
     </div>
   </div>
