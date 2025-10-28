@@ -42,8 +42,9 @@ async function fechingCredits(forceReload = false){
          localStorage.setItem(CACHE_KEY_CREDIT, JSON.stringify(response));
          localStorage.setItem(CACHE_KEY_CREDIT_TIME, now.toString());
       }else{
+
         credits.value = await fetchUserCredit(userId)
-       
+        
       }
     }catch(error){
         console.log('error to  feching crédit')

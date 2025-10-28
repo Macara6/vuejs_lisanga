@@ -46,6 +46,10 @@ const handleLogin = async() => {
 function pageSetPassword(){
     return router.push('/pages/SetPassword')
 }
+
+function downloadApk() {
+  window.open('/app-lisanga.apk', '_blank');
+}
 </script>
 
 <template>
@@ -116,12 +120,19 @@ function pageSetPassword(){
       </div>
 
       <!-- Logo -->
+<!-- Logo -->
       <img
         src="/demo/bilatech_log.png"
         alt="bilatech logo"
-        class="h-28 sm:h-40 mx-auto my-8 object-contain transition-all duration-300"
+        class="h-28 sm:h-40 mx-auto my-4 object-contain transition-all duration-300"
       />
 
+      <!-- Bouton Télécharger -->
+      <Button
+        label="📱 Télécharger l'application Android"
+        class="w-full flex justify-center items-center gap-2 text-base sm:text-lg py-3 mt-1"
+        @click="downloadApk"
+      />
       <!-- Footer -->
       <p class="text-gray-400 text-xs text-center">
         © {{ new Date().getFullYear() }} Bilatech — Tous droits réservés

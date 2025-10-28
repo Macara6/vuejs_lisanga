@@ -34,13 +34,13 @@ onMounted(async () => {
 async function fetchingTransactionHisto(forceReload = false) {
   const CACHE_KEY_TRANS ="cached_transactions";
   const CACHE_KEY_TRANS_TIME="cached_transactions_time";
-  const CACHE_DURATION = 10 * 60 *1000;
+  const CACHE_DURATION_CREDIT = 4*60*1000;
   const now = Date.now();
 
   const CacheTransactions = localStorage.getItem(CACHE_KEY_TRANS);
   const cacheTime = localStorage.getItem(CACHE_KEY_TRANS_TIME);
 
-  if(CacheTransactions && cacheTime && !forceReload && now - Number(cacheTime) < CACHE_DURATION){
+  if(CacheTransactions && cacheTime && !forceReload && now - Number(cacheTime) < CACHE_DURATION_CREDIT){
     transactions.value = JSON.parse(CacheTransactions);
     return;
   }
@@ -60,10 +60,14 @@ async function fetchingTransactionHisto(forceReload = false) {
   }
 }
 
-function resetFilters() {
+
+async function resetFilters() {
   filterType.value = '';
   filterDate.value = '';
   filterReference.value = '';
+  console.log('salut');
+  await fetchingTransactionHisto(true);
+  
 }
 
 function formatCurrency(value) {
@@ -143,6 +147,7 @@ async function proceedCancelTransaction(){
         <div v-if="transactions.length === 0" class="text-gray-500 text-center py-6">
           <i class="pi pi-inbox text-2xl sm:text-3xl"></i>
           <p>Pas des données trouvée..</p>
+
           <div v-if="loading" class="flex flex-col items-center justify-center h-[50vh] space-y-4">
             <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
             <p class="text-gray-500 text-lg">Chargement des données...</p>
@@ -182,7 +187,7 @@ async function proceedCancelTransaction(){
             </div>
 
             <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Button label="Réinitialiser" icon="pi pi-refresh" severity="secondary" class="w-full sm:w-auto" @click="resetFilters" />
+              <Button label="Actualiser" icon="pi pi-refresh" severity="secondary" class="w-full sm:w-auto" @click="resetFilters" :loading="loading" />
               <Button label="Télécharger PDF" icon="pi pi-file-pdf" class="p-button-danger w-full sm:w-auto" @click="downloadPDF" />
             </div>
           </div>
